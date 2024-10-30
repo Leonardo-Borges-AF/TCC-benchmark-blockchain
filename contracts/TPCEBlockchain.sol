@@ -2,11 +2,10 @@
 pragma solidity ^0.8.0;
 
 contract TPCEBlockchain {
-
     // Estrutura para armazenar uma ação
     struct Stock {
-        string name;       // Nome da ação
-        uint256 price;     // Preço por ação (em wei)
+        string name; // Nome da ação
+        uint256 price; // Preço por ação (em wei)
         uint256 totalSupply; // Total de ações disponíveis
     }
 
@@ -21,7 +20,12 @@ contract TPCEBlockchain {
     event StockSold(address indexed seller, string ticker, uint256 amount);
 
     // Adiciona uma nova ação no mercado
-    function addStock(string memory ticker, string memory name, uint256 price, uint256 totalSupply) public {
+    function addStock(
+        string memory ticker,
+        string memory name,
+        uint256 price,
+        uint256 totalSupply
+    ) public {
         stocks[ticker] = Stock(name, price, totalSupply);
     }
 
@@ -47,7 +51,10 @@ contract TPCEBlockchain {
     // Função para vender ações
     function sellStock(string memory ticker, uint256 amount) public {
         // Verificar se o usuário possui ações suficientes
-        require(userStocks[msg.sender][ticker] >= amount, "Not enough stock to sell");
+        require(
+            userStocks[msg.sender][ticker] >= amount,
+            "Not enough stock to sell"
+        );
 
         // Recuperar as informações da ação
         Stock storage stock = stocks[ticker];
@@ -65,7 +72,10 @@ contract TPCEBlockchain {
     }
 
     // Função para consultar o saldo de ações de um usuário
-    function getUserStockBalance(address user, string memory ticker) public view returns (uint256) {
+    function getUserStockBalance(
+        address user,
+        string memory ticker
+    ) public view returns (uint256) {
         return userStocks[user][ticker];
     }
 
