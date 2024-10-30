@@ -7,6 +7,7 @@ contract TPCEBlockchain {
         string name; // Nome da ação
         uint256 price; // Preço por ação (em wei)
         uint256 totalSupply; // Total de ações disponíveis
+        bool exists; // Flag para verificar se a ação existe
     }
 
     // Mapeamento para armazenar as ações disponíveis no mercado (ticker -> Stock)
@@ -26,12 +27,15 @@ contract TPCEBlockchain {
         uint256 price,
         uint256 totalSupply
     ) public {
-        stocks[ticker] = Stock(name, price, totalSupply);
+        require(price > 0, "Price must be greater than zero");
+        require(totalSupply > 0, "Total supply must be greater than zero");
+        stocks[ticker] = Stock(name, price, totalSupply, true);
     }
 
     // Função para comprar ações
     function buyStock(string memory ticker, uint256 amount) public payable {
         Stock storage stock = stocks[ticker];
+        require(stock.exists, "Stock does not exist");
 
         // Verificar se há ações suficientes disponíveis
         require(stock.totalSupply >= amount, "Not enough stock available");
@@ -58,6 +62,7 @@ contract TPCEBlockchain {
 
         // Recuperar as informações da ação
         Stock storage stock = stocks[ticker];
+        require(stock.exists, "Stock does not exist");
 
         // Atualizar o saldo do usuário
         userStocks[msg.sender][ticker] -= amount;
@@ -81,6 +86,7 @@ contract TPCEBlockchain {
 
     // Função para consultar o preço de uma ação
     function getStockPrice(string memory ticker) public view returns (uint256) {
+        require(stocks[ticker].exists, "Stock does not exist");
         return stocks[ticker].price;
     }
 }
