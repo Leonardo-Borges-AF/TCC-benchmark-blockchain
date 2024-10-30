@@ -1,4 +1,4 @@
-const TPCEBlockchain = artifacts.require("TPCEBlockchain");
+const TPCEBlockchain = artifacts.require("./TPCEBlockchain");
 
 contract("TPCEBlockchain", (accounts) => {
     const [owner, user1, user2, user3] = accounts;
