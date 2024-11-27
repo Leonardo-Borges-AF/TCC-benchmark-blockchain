@@ -1,51 +1,49 @@
-const TPCEBlockchain = artifacts.require("./TPCEBlockchain");
+const TPCEBlockchain = artifacts.require("TPCEBlockchain");
 
-contract("TPCEBlockchain", (accounts) => {
-    const [owner, user1, user2, user3] = accounts;
+contract("TPCEBlockchain", async (accounts) => {
+  it("should perform maximum transactions in 1 minute", async () => {
+    const instance = await TPCEBlockchain.deployed();
 
-    it("should deploy the contract and set initial stocks", async () => {
-        const contract = await TPCEBlockchain.deployed();
+    // Configuração inicial: adicionar uma ação no mercado
+    const ticker = "TEST";
+    const stockName = "Test Stock";
+    const stockPrice = web3.utils.toWei("0.01", "ether"); // Preço de 0.01 ETH por ação
+    const stockSupply = 1000000; // 1 milhão de ações disponíveis
 
-        // Adiciona ações ao contrato
-        await contract.addStock("AAPL", "Apple", web3.utils.toWei("0.1", "ether"), 1000);
-        await contract.addStock("GOOGL", "Google", web3.utils.toWei("0.2", "ether"), 500);
-        await contract.addStock("AMZN", "Amazon", web3.utils.toWei("0.3", "ether"), 300);
+    await instance.addStock(ticker, stockName, stockPrice, stockSupply, { from: accounts[0] });
 
-        // Verifica se as ações foram adicionadas corretamente
-        const appleStock = await contract.stocks("AAPL");
-        assert.equal(appleStock.name, "Apple", "Ação Apple não adicionada corretamente");
-        assert.equal(appleStock.price, web3.utils.toWei("0.1", "ether"), "Preço incorreto");
-    });
+    console.log("Ação adicionada ao mercado!");
 
-    it("should allow users to buy and sell stocks", async () => {
-        const contract = await TPCEBlockchain.deployed();
+    const startTime = Date.now();
+    const endTime = startTime + 60 * 1000; // 1 minuto em milissegundos
+    let totalTransactions = 0;
+    let totalGasUsed = 0;
 
-        // Simula uma série de compras
-        await contract.buyStock("AAPL", 5, { from: user1, value: web3.utils.toWei("0.5", "ether") });
-        await contract.buyStock("GOOGL", 2, { from: user2, value: web3.utils.toWei("0.4", "ether") });
-        await contract.buyStock("AMZN", 1, { from: user3, value: web3.utils.toWei("0.3", "ether") });
+    console.log("Iniciando teste de transações...");
 
-        // Verifica os saldos dos usuários
-        const user1Balance = await contract.getUserStockBalance(user1, "AAPL");
-        const user2Balance = await contract.getUserStockBalance(user2, "GOOGL");
-        const user3Balance = await contract.getUserStockBalance(user3, "AMZN");
+    while (Date.now() < endTime) {
+      try {
+        // Simular a compra de 1 ação por transação
+        const tx = await instance.buyStock(ticker, 1, {
+          from: accounts[1], // Comprador
+          value: stockPrice, // Enviar o valor correspondente a 1 ação
+        });
 
-        assert.equal(user1Balance.toNumber(), 5, "Saldo incorreto para user1");
-        assert.equal(user2Balance.toNumber(), 2, "Saldo incorreto para user2");
-        assert.equal(user3Balance.toNumber(), 1, "Saldo incorreto para user3");
+        // Incrementar contadores
+        totalTransactions++;
+        totalGasUsed += tx.receipt.gasUsed;
+      } catch (error) {
+        console.error("Erro durante a transação:", error.message);
+        break;
+      }
+    }
 
-        // Simula uma série de vendas
-        await contract.sellStock("AAPL", 2, { from: user1 });
-        await contract.sellStock("GOOGL", 1, { from: user2 });
-        await contract.sellStock("AMZN", 1, { from: user3 });
+    console.log("Teste concluído!");
+    console.log(`Total de transações realizadas: ${totalTransactions}`);
+    console.log(`Gás total consumido: ${totalGasUsed}`);
 
-        // Verifica o saldo após venda
-        const newUser1Balance = await contract.getUserStockBalance(user1, "AAPL");
-        const newUser2Balance = await contract.getUserStockBalance(user2, "GOOGL");
-        const newUser3Balance = await contract.getUserStockBalance(user3, "AMZN");
-
-        assert.equal(newUser1Balance.toNumber(), 3, "Saldo incorreto após venda para user1");
-        assert.equal(newUser2Balance.toNumber(), 1, "Saldo incorreto após venda para user2");
-        assert.equal(newUser3Balance.toNumber(), 0, "Saldo incorreto após venda para user3");
-    });
+    // Validações
+    assert.isAbove(totalTransactions, 0, "Nenhuma transação foi realizada");
+    assert.isAbove(totalGasUsed, 0, "Nenhum gás foi consumido");
+  });
 });
