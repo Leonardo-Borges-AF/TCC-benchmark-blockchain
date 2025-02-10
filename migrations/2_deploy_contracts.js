@@ -1,5 +1,5 @@
-const TPCEBlockchain = artifacts.require("TPCEBlockchain.sol");
+const TPCEBlockchain = artifacts.require("TPCEBlockchain");
 
-module.exports = function(deployer) {
-  deployer.deploy(TPCEBlockchain, { gas: 5000000 });
+module.exports = function (deployer) {
+    deployer.deploy(TPCEBlockchain);
 };

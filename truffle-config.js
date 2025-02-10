@@ -44,7 +44,11 @@
 // require('dotenv').config();
 // const { MNEMONIC, PROJECT_ID } = process.env;
 
-// const HDWalletProvider = require('@truffle/hdwallet-provider');
+const HDWalletProvider = require('@truffle/hdwallet-provider');
+require('dotenv').config(); // Para gerenciar variáveis de ambiente
+const privateKeys =[
+  '9b08cfd4a776f616e1917aab0916e389e2c189e5b240ad102e1c5b02e61b4b9c'
+]
 
 module.exports = {
   /**
@@ -69,8 +73,39 @@ module.exports = {
      port: 8545,            // Standard Ethereum port (default: none)
      network_id: "*",       // Any network (default: none)
      gas: 6721975, // Limite de gás maior
-     gasPrice: 20000000000, // Gás por unidade
+     gasPrice: 875000000, // Gás por unidade
     },
+    bscTestnet: {
+      provider: () => new HDWalletProvider(process.env.MNEMONIC, `https://data-seed-prebsc-1-s1.binance.org:8545`),
+      network_id: 97, // ID da rede da Binance Smart Chain Testnet
+      gas: 3000000, // Aumente o limite de gás para garantir que a transação seja minerada
+      gasPrice: 10000000000, // Preço do gás em wei (20 Gwei)
+      timeoutBlocks: 200, // Aumente o timeout para 500 blocos
+      skipDryRun: true, // Ignora a execução de teste antes da implantação
+    },
+    avalancheFuji: {
+      provider: () => new HDWalletProvider(
+        process.env.MNEMONIC, // Sua frase mnemônica
+        'https://api.avax-test.network/ext/bc/C/rpc' // RPC da Fuji Testnet
+      ),
+      network_id: 43113, // Chain ID da Fuji Testnet
+      gas: 10000000, // Ajuste conforme necessário
+      gasPrice: 25 // 25 Gwei
+    },
+    eth: {
+      provider: () => new HDWalletProvider({
+        privateKeys: privateKeys, // Sua frase mnemônica
+        providerOrUrl: "https://sepolia.infura.io/v3/24c30af426bc40a2a0184389ad6001ca", // URL do nó RPC
+        numberOfAddresses: 1,
+      }),
+      network_id: 11155111, // ID da Sepolia Testnet
+      gas: 3000000, // Limite de gás (ajuste conforme necessário)
+      gasPrice: 10, // Preço do gás (10 Gwei)
+      confirmations: 2,
+      timeoutBlocks: 200,
+      skipDryRun: true,
+    },
+
     //
     // An additional network, but with some advanced options…
     // advanced: {
@@ -84,13 +119,17 @@ module.exports = {
     //
     // Useful for deploying to a public network.
     // Note: It's important to wrap the provider as a function to ensure truffle uses a new provider every time.
-    // goerli: {
-    //   provider: () => new HDWalletProvider(MNEMONIC, `https://goerli.infura.io/v3/${PROJECT_ID}`),
-    //   network_id: 5,       // Goerli's id
-    //   confirmations: 2,    // # of confirmations to wait between deployments. (default: 0)
-    //   timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
-    //   skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
-    // },
+    sepolia: {
+      provider: () =>
+        new HDWalletProvider(
+          process.env.PRIVATE_KEY, // Sua chave privada armazenada no .env
+          `https://sepolia.infura.io/v3/${process.env.INFURA_PROJECT_ID}`  // Endpoint da rede no Infura
+        ),
+      network_id: 5,       // Goerli's id
+      confirmations: 2,    // # of confirmations to wait between deployments. (default: 0)
+      timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
+      skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
+    },
     //
     // Useful for private networks
     // private: {
@@ -110,13 +149,13 @@ module.exports = {
     solc: {
       version: "0.8.20",      // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
-      // settings: {          // See the solidity docs for advice about optimization and evmVersion
-      //  optimizer: {
-      //    enabled: false,
-      //    runs: 200
-      //  },
+      settings: {          // See the solidity docs for advice about optimization and evmVersion
+       optimizer: {
+         enabled: false,
+         runs: 200
+       },
       //  evmVersion: "byzantium"
-      // }
+      }
     }
   },
 
